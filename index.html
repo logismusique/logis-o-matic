@@ -731,32 +731,19 @@
             return (stepIndex % 2 === 1) ? (secondsPerStep() * amt) : 0;
         }
 
-        async function unlockAudio() {
-            ensureAudio();
+        let audioUnlocked = false;
 
-            // Must be called from a user gesture (click/touch)
-            if (audioCtx.state !== "running") {
-                await audioCtx.resume();
-            }
+        async function unlockAudioFromGesture() {
+            if (audioUnlocked) return;
 
-            // iOS Safari sometimes needs a short silent buffer to fully unlock playback
-            const buffer = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
-            const src = audioCtx.createBufferSource();
-            src.buffer = buffer;
-            src.connect(audioCtx.destination);
-            src.start(0);
-            src.stop(0.01);
-        }
-
-
-        function ensureAudio() {
+            // Create context ONLY here (user gesture)
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
                 masterGain = audioCtx.createGain();
                 masterGain.gain.value = 0.9;
                 masterGain.connect(audioCtx.destination);
 
-                // per-track gains
                 for (const t of tracks) {
                     const g = audioCtx.createGain();
                     g.gain.value = t.muted ? 0 : t.volume;
@@ -764,13 +751,27 @@
                     trackGains.set(t.id, g);
                 }
             }
-            return audioCtx;
+
+            if (audioCtx.state !== "running") {
+                await audioCtx.resume();
+            }
+
+            // iOS "unlock" tick: play a silent buffer once
+            const buffer = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
+            const src = audioCtx.createBufferSource();
+            src.buffer = buffer;
+            src.connect(audioCtx.destination);
+            src.start();
+            src.stop(audioCtx.currentTime + 0.01);
+
+            audioUnlocked = true;
         }
 
         async function loadSamples() {
-            ensureAudio();
+            
+            if (!audioCtx) throw new Error("Audio not unlocked yet");
             setStatus("Chargement des samples…");
-
+            
             let ok = 0;
             let fail = 0;
             let total = 0;
@@ -1103,7 +1104,7 @@
         });
 
         playBtn.addEventListener("click", async () => {
-            await unlockAudio();
+            await unlockAudioFromGesture();
             setStatus(`audio: ${audioCtx.state}`);
             // Try loading samples the first time you hit play (or you can do it on page load)
             if (buffers.size === 0) await loadSamples();
@@ -1141,14 +1142,16 @@
         window.addEventListener("keydown", async (e) => {
             if (e.code === "Space") {
                 e.preventDefault();
-                await unlockAudio();
+                await unlockAudioFromGesture();
                 if (buffers.size === 0) await loadSamples();
                 if (!isPlaying) start();
                 else stop();
             }
         });
 
-        document.addEventListener("touchstart", () => { unlockAudio(); }, { once: true });
+        document.addEventListener("touchstart", () => {
+            unlockAudioFromGesture().catch(console.warn);
+        }, { once: true, passive: true });
 
         /***********************
          * INIT
@@ -1161,9 +1164,6 @@
         // Optional: uncomment if you want to try loading immediately (may still fail w/o files)
         // (You still need a user gesture to start playback in many browsers.)
         (async () => {
-            ensureAudio();
-            await loadSamples();
-
             try {
                 const loaded = tryLoadSongFromUrlHash();
                 if (loaded) {
