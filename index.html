@@ -731,6 +731,24 @@
             return (stepIndex % 2 === 1) ? (secondsPerStep() * amt) : 0;
         }
 
+        async function unlockAudio() {
+            ensureAudio();
+
+            // Must be called from a user gesture (click/touch)
+            if (audioCtx.state !== "running") {
+                await audioCtx.resume();
+            }
+
+            // iOS Safari sometimes needs a short silent buffer to fully unlock playback
+            const buffer = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
+            const src = audioCtx.createBufferSource();
+            src.buffer = buffer;
+            src.connect(audioCtx.destination);
+            src.start(0);
+            src.stop(0.01);
+        }
+
+
         function ensureAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -747,13 +765,6 @@
                 }
             }
             return audioCtx;
-        }
-
-        async function resumeAudioIfNeeded() {
-            ensureAudio();
-            if (audioCtx.state !== "running") {
-                await audioCtx.resume();
-            }
         }
 
         async function loadSamples() {
@@ -831,6 +842,9 @@
             g.gain.setValueAtTime(1, Math.max(when + fadeIn, endTime - fadeOut));
             g.gain.linearRampToValueAtTime(0, endTime);
 
+            const now = audioCtx.currentTime;
+            // If scheduled time is slightly behind, push it forward a tiny bit
+            if (when < now + 0.005) when = now + 0.005;
             src.start(when);
             src.stop(endTime + 0.02);
 
@@ -1089,7 +1103,8 @@
         });
 
         playBtn.addEventListener("click", async () => {
-            await resumeAudioIfNeeded();
+            await unlockAudio();
+            setStatus(`audio: ${audioCtx.state}`);
             // Try loading samples the first time you hit play (or you can do it on page load)
             if (buffers.size === 0) await loadSamples();
 
@@ -1100,7 +1115,6 @@
         randomBtn.addEventListener("click", () => {
             generateRandomPattern();
         });
-
 
         clearBtn.addEventListener("click", () => {
             if (!confirm("Es-tu sûr de vouloir effacer ce chef-d'œuvre?")) return;
@@ -1127,12 +1141,14 @@
         window.addEventListener("keydown", async (e) => {
             if (e.code === "Space") {
                 e.preventDefault();
-                await resumeAudioIfNeeded();
+                await unlockAudio();
                 if (buffers.size === 0) await loadSamples();
                 if (!isPlaying) start();
                 else stop();
             }
         });
+
+        document.addEventListener("touchstart", () => { unlockAudio(); }, { once: true });
 
         /***********************
          * INIT
