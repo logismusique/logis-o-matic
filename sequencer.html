@@ -1,0 +1,1168 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Logis-o-matic</title>
+    <style>
+        :root {
+            --bg: #0b0c10;
+            --panel: #121420;
+            --panel2: #171a2a;
+            --text: #e9ecf1;
+            --muted: #a9b0c0;
+            --accent: #7c5cff;
+            --accent2: #2ee59d;
+            --danger: #ff5c7c;
+            --cell: #22263a;
+            --cellOn: #7c5cff;
+            --cellAlt: #1b1f33;
+            --border: #2a2f4a;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+            --radius: 14px;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--sans);
+            background: radial-gradient(1200px 600px at 30% -10%, rgba(124, 92, 255, .35), transparent 60%),
+                radial-gradient(1000px 500px at 90% 10%, rgba(46, 229, 157, .22), transparent 55%),
+                var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .app {
+            width: min(1100px, 100%);
+            display: grid;
+            gap: 16px;
+        }
+
+        header {
+            background: linear-gradient(180deg, rgba(18, 20, 32, .95), rgba(18, 20, 32, .75));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .title {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .title h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: .2px;
+        }
+
+        .title p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.35;
+            max-width: 70ch;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .btn {
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02));
+            color: var(--text);
+            border-radius: 12px;
+            padding: 10px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .btn:hover {
+            border-color: rgba(124, 92, 255, .6);
+        }
+
+        .btn.primary {
+            border-color: rgba(124, 92, 255, .7);
+            background: linear-gradient(180deg, rgba(124, 92, 255, .35), rgba(124, 92, 255, .18));
+        }
+
+        .btn.danger {
+            border-color: rgba(255, 92, 124, .65);
+            background: linear-gradient(180deg, rgba(255, 92, 124, .28), rgba(255, 92, 124, .12));
+        }
+
+        .btn:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .pill {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--muted);
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: rgba(0, 0, 0, .2);
+            white-space: nowrap;
+        }
+
+        .panel {
+            background: linear-gradient(180deg, rgba(18, 20, 32, .9), rgba(18, 20, 32, .72));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .sliders {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, .18);
+            min-width: 210px;
+        }
+
+        .field label {
+            color: var(--muted);
+            font-size: 12px;
+            width: 70px;
+        }
+
+        .field input[type="range"] {
+            width: 120px;
+        }
+
+        .field output {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text);
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .grid {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            overflow: hidden;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, .18);
+        }
+
+        .grid th,
+        .grid td {
+            border-bottom: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            padding: 0;
+        }
+
+        .grid tr:last-child td,
+        .grid tr:last-child th {
+            border-bottom: none;
+        }
+
+        .grid th:last-child,
+        .grid td:last-child {
+            border-right: none;
+        }
+
+        .rowHead {
+            width: 210px;
+            padding: 10px 12px !important;
+            background: rgba(0, 0, 0, .15);
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .rowHead .name {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .rowHead .sub {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .tinybtn {
+            font-size: 12px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .05);
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .tinybtn:hover {
+            border-color: rgba(124, 92, 255, .6);
+        }
+
+        .tinybtn.muted {
+            opacity: .7;
+            border-color: rgba(255, 255, 255, .08);
+        }
+
+        .tinybtn.on {
+            border-color: rgba(255, 92, 124, .7);
+            background: rgba(255, 92, 124, .18);
+        }
+
+        .vol {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .vol input {
+            width: 100%;
+        }
+
+        .colHead {
+            height: 42px;
+            background: rgba(0, 0, 0, .08);
+            text-align: center;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .cellBtn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--mono);
+            font-size: 14px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, .9);
+            background-color: black;
+            width: 50px;
+            height: 50px;
+        }
+
+        .cellBtn.alt {
+            background: var(--cellAlt);
+        }
+
+        .cellBtn.on {
+            background: rgba(124, 92, 255, .75);
+        }
+
+
+
+        .cellBtn.playhead {
+            box-shadow: inset 0 0 0 2px rgba(46, 229, 157, .85);
+        }
+
+        .legend {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .kbd {
+            font-family: var(--mono);
+            padding: 2px 6px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, .2);
+            color: var(--text);
+        }
+
+        .status {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--muted);
+            margin-left: auto;
+        }
+
+        .note {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .footer {
+            color: rgba(169, 176, 192, .85);
+            font-size: 12px;
+            text-align: center;
+            padding: 6px 0 0;
+        }
+
+        /* ===== PURPLE RANGE SLIDER ===== */
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg,
+                    rgba(124, 92, 255, 0.9),
+                    rgba(124, 92, 255, 0.4));
+            border-radius: 999px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* WebKit (Chrome, Safari, Edge) */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #7c5cff;
+            /* same purple as cells */
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.25);
+            cursor: pointer;
+        }
+
+        /* Firefox */
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #7c5cff;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.25);
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-track {
+            height: 6px;
+            background: linear-gradient(90deg,
+                    rgba(124, 92, 255, 0.9),
+                    rgba(124, 92, 255, 0.4));
+            border-radius: 999px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <header>
+            <div class="title">
+                <h1>Logis-o-matic</h1>
+                <p>
+                    Inspiré du légendaire jeu flash Punk-o-matic
+                </p>
+            </div>
+            <div class="controls">
+                <button id="playBtn" class="btn primary">▶ Play</button>
+                <button id="randomBtn" class="btn">🎲 Random</button>
+                <button id="clearBtn" class="btn danger">Clear</button>
+                <button id="shareBtn" class="btn">🔗🔥 Partager le lien</button>
+                <span id="loadPill" class="pill">samples: non chargés</span>
+            </div>
+        </header>
+
+        <section class="panel">
+            <div class="topbar">
+                <div class="sliders">
+                    <div class="field" style="display:none">
+                        <label for="bpm">BPM</label>
+                        <input id="bpm" type="range" min="60" max="180" value="39.25" step="0.25" />
+                        <output id="bpmOut">78.5</output>
+                    </div>
+
+                    <div class="field" style="display: none;">
+                        <label for="swing">Swing</label>
+                        <input id="swing" type="range" min="0" max="60" value="0" />
+                        <output id="swingOut">0%</output>
+                    </div>
+
+
+                </div>
+
+                <div class="status" id="status">ready</div>
+            </div>
+
+            <table class="grid" id="grid"></table>
+
+            <div class="legend">
+                <div>
+                    Truc: appuie sur <span class="kbd">Espace</span> pour jouer/arrêter.
+                </div>
+            </div>
+        </section>
+
+
+    </div>
+
+    <script>
+        /***********************
+         * CONFIG
+         ***********************/
+        const STEPS = 16;
+
+        // Track definitions
+        const tracks = [
+            { id: "drum", name: "Batterie", sampleKey: "drum", volume: 0.9, muted: false },
+            { id: "bass", name: "Basse", sampleKey: "bass", volume: 0.9, muted: false },
+            { id: "acoustic", name: "Acoustique", sampleKey: "acoustic", volume: 0.9, muted: false },
+            { id: "electric", name: "Électrique", sampleKey: "electric", volume: 0.9, muted: false },
+        ];
+
+        /**
+         * Replace these URLs when you have your MP3s.
+         * Keep them on the same origin (or proper CORS headers) for fetch() to work.
+         * Examples:
+         *  - "./samples/drum.mp3"
+         *  - "https://yourdomain.com/audio/drum.mp3"
+         */
+        const sampleBanks = {
+            drum: ["./samples/drum1.mp3", "./samples/drum2.mp3", "./samples/drum3.mp3", "./samples/drum4.mp3", "./samples/drum5.mp3", "./samples/drum6.mp3"],
+            bass: ["./samples/bass1.mp3", "./samples/bass2.mp3", "./samples/bass3.mp3", "./samples/bass4.mp3", "./samples/bass5.mp3", "./samples/bass6.mp3", "./samples/bass7.mp3", "./samples/bass8.mp3", "./samples/bass9.mp3", "./samples/bass10.mp3", "./samples/bass11.mp3", "./samples/bass12.mp3", "./samples/bass13.mp3", "./samples/bass14.mp3", "./samples/bass15.mp3", "./samples/bass16.mp3", "./samples/bass17.mp3"],
+            acoustic: ["./samples/acoustic1.mp3", "./samples/acoustic2.mp3", "./samples/acoustic3.mp3", "./samples/acoustic4.mp3", "./samples/acoustic5.mp3", "./samples/acoustic6.mp3", "./samples/acoustic7.mp3", "./samples/acoustic8.mp3", "./samples/acoustic9.mp3", "./samples/acoustic10.mp3", "./samples/acoustic11.mp3", "./samples/acoustic12.mp3", "./samples/acoustic13.mp3", "./samples/acoustic14.mp3"],
+            electric: ["./samples/electric1.mp3", "./samples/electric2.mp3", "./samples/electric3.mp3", "./samples/electric4.mp3", "./samples/electric5.mp3"],
+        };
+
+        /***********************
+         * STATE
+         ***********************/
+        // pattern[trackIndex][stepIndex] -> 0 or 1 for now
+        const pattern = tracks.map(() => Array.from({ length: STEPS }, () => 0));
+
+        // Audio
+        let audioCtx = null;
+        const buffers = new Map();          // key -> AudioBuffer
+        const trackGains = new Map();       // trackId -> GainNode
+        let masterGain = null;
+
+        // Transport / scheduler
+        let isPlaying = false;
+        let currentStep = 0;
+        let nextNoteTime = 0;
+        let schedulerTimer = null;
+
+        // Scheduler constants
+        const lookaheadMs = 25;      // how often to run scheduler loop
+        const scheduleAhead = 0.12;  // seconds to schedule ahead
+
+        /***********************
+         * UI refs
+         ***********************/
+        const gridEl = document.getElementById("grid");
+        const playBtn = document.getElementById("playBtn");
+        const randomBtn = document.getElementById("randomBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const loadPill = document.getElementById("loadPill");
+        const bpmEl = document.getElementById("bpm");
+        const bpmOut = document.getElementById("bpmOut");
+        const swingEl = document.getElementById("swing");
+        const swingOut = document.getElementById("swingOut");
+        const statusEl = document.getElementById("status");
+        const shareBtn = document.getElementById("shareBtn");
+
+
+        /***********************
+         * HELPERS
+         ***********************/
+        function base64UrlEncodeBytes(bytes) {
+            let binary = "";
+            for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+            const b64 = btoa(binary);
+            return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+        }
+
+        function base64UrlDecodeToBytes(b64url) {
+            let b64 = b64url.replace(/-/g, "+").replace(/_/g, "/");
+            while (b64.length % 4) b64 += "=";
+            const binary = atob(b64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            return bytes;
+        }
+
+        function encodeSongToHash(songObj) {
+            const json = JSON.stringify(songObj);
+            const bytes = new TextEncoder().encode(json);
+            return base64UrlEncodeBytes(bytes);
+        }
+        function getSongState() {
+            return {
+                v: 1,                 // versioning for future-proofing
+                steps: STEPS,
+                bpm: Number(bpmEl?.value ?? 120),
+                swing: Number(swingEl?.value ?? 0), // store as slider value (0..60)
+                pattern: pattern,     // 2D array [track][step] with ints
+            };
+        }
+
+        function applySongState(song) {
+            if (!song || !song.pattern) throw new Error("Invalid song data");
+
+            // Basic validation
+            if (!Array.isArray(song.pattern) || song.pattern.length !== tracks.length) {
+                throw new Error("Pattern shape mismatch");
+            }
+
+            // Apply bpm/swing if you use the sliders
+            if (typeof song.bpm === "number" && bpmEl) {
+                bpmEl.value = String(song.bpm);
+                bpmOut.textContent = String(song.bpm);
+            }
+            if (typeof song.swing === "number" && swingEl) {
+                swingEl.value = String(song.swing);
+                swingOut.textContent = `${song.swing}%`;
+            }
+
+            // Copy pattern safely + clamp to each track's bank length
+            for (let t = 0; t < tracks.length; t++) {
+                const trackKey = tracks[t].sampleKey;
+                const optionsCount = (sampleBanks[trackKey]?.length ?? 0);
+
+                for (let s = 0; s < STEPS; s++) {
+                    const v = Number(song.pattern[t][s] ?? 0);
+
+                    if (!optionsCount) {
+                        pattern[t][s] = 0;
+                    } else if (v <= 0) {
+                        pattern[t][s] = 0;
+                    } else {
+                        // wrap/clamp so old links still work if you changed sample counts
+                        pattern[t][s] = ((v - 1) % optionsCount) + 1;
+                    }
+                }
+            }
+
+            repaintAllCells();
+        }
+
+        function decodeSongFromHash(encoded) {
+            const bytes = base64UrlDecodeToBytes(encoded);
+            const json = new TextDecoder().decode(bytes);
+            return JSON.parse(json);
+        }
+
+        function makeShareUrlFromCurrentState() {
+            const song = getSongState();
+            const encoded = encodeSongToHash(song);
+
+            const url = new URL(window.location.href);
+            url.hash = `song=${encoded}`;
+            return url.toString();
+        }
+
+        function tryLoadSongFromUrlHash() {
+            const hash = window.location.hash || "";
+            if (!hash.startsWith("#song=")) return false;
+
+            const encoded = hash.slice("#song=".length);
+            if (!encoded) return false;
+
+            const song = decodeSongFromHash(encoded);
+            applySongState(song);
+            return true;
+        }
+
+
+        function stopAllVoices(immediate = true) {
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+
+            for (const [trackId, v] of activeVoiceByTrackId.entries()) {
+                try {
+                    // Kill envelopes so they don't keep fading/playing
+                    v.gain.gain.cancelScheduledValues(now);
+
+                    if (immediate) {
+                        // Hard cut (no fade) — truly immediate
+                        v.gain.gain.setValueAtTime(0, now);
+                        v.src.stop(now);
+                    } else {
+                        // Tiny fade (click-safe) — almost immediate
+                        const fastFade = 0.02;
+                        v.gain.gain.setValueAtTime(v.gain.gain.value, now);
+                        v.gain.gain.linearRampToValueAtTime(0, now + fastFade);
+                        v.src.stop(now + fastFade + 0.01);
+                    }
+                } catch (_) { }
+            }
+
+            activeVoiceByTrackId.clear();
+        }
+
+        function randInt(min, max) {
+            // inclusive min/max
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function chance(p) {
+            return Math.random() < p;
+        }
+
+        function randomOptionForTrack(trackKey) {
+            const n = (sampleBanks[trackKey]?.length ?? 0);
+            if (n <= 0) return 0;
+            return randInt(1, n); // 1..n
+        }
+
+        function generateRandomPattern() {
+            // Clear first
+            for (let t = 0; t < tracks.length; t++) pattern[t].fill(0);
+
+            // Simple “musical-ish” defaults per track
+            const rulesByTrackKey = {
+                drum: { density: 0.4, minGap: 0 }, // more hits
+                bass: { density: 0.4, minGap: 1 }, // sparser
+                acoustic: { density: 0.4, minGap: 1 },
+                electric: { density: 0.4, minGap: 1 },
+            };
+
+            for (let t = 0; t < tracks.length; t++) {
+                const trackKey = tracks[t].sampleKey;
+                const optionsCount = (sampleBanks[trackKey]?.length ?? 0);
+                if (optionsCount === 0) continue;
+
+                const { density, minGap } = rulesByTrackKey[trackKey] ?? { density: 0.15, minGap: 1 };
+
+                let lastHitStep = -999;
+
+                // Optional: bias downbeats (step 1 and 9) a bit
+                const downbeats = new Set([0, 8]);
+
+                for (let s = 0; s < STEPS; s++) {
+                    const tooClose = (s - lastHitStep) <= minGap;
+
+                    // stronger probability on downbeats
+                    const p = downbeats.has(s) ? Math.min(1, density + 0.20) : density;
+
+                    if (!tooClose && chance(p)) {
+                        pattern[t][s] = randInt(1, optionsCount);
+                        lastHitStep = s;
+                    }
+                }
+
+                // Ensure at least one hit per track (optional)
+                const hasAny = pattern[t].some(v => v !== 0);
+                if (!hasAny) {
+                    const s = randInt(0, STEPS - 1);
+                    pattern[t][s] = randInt(1, optionsCount);
+                }
+            }
+
+            repaintAllCells();
+        }
+
+        function bufKey(trackKey, variantIndex0) {
+            return `${trackKey}:${variantIndex0}`;
+        }
+        function setStatus(msg) { statusEl.textContent = msg; }
+
+        function bpm() { return 39.25; /*Number(bpmEl.value);*/ }
+        function swingAmount() { return Number(swingEl.value) / 100; } // 0.00..0.60
+
+        // 16 steps per bar, 4 beats per bar => 4 steps per beat (16th notes)
+        function secondsPerStep() {
+            return (60 / bpm()) / 4;
+        }
+
+        // Basic swing: delay off-steps (odd indices) by a fraction of step length
+        function swingOffsetSeconds(stepIndex) {
+            const amt = swingAmount(); // 0..0.6
+            if (amt <= 0) return 0;
+            return (stepIndex % 2 === 1) ? (secondsPerStep() * amt) : 0;
+        }
+
+        function ensureAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = 0.9;
+                masterGain.connect(audioCtx.destination);
+
+                // per-track gains
+                for (const t of tracks) {
+                    const g = audioCtx.createGain();
+                    g.gain.value = t.muted ? 0 : t.volume;
+                    g.connect(masterGain);
+                    trackGains.set(t.id, g);
+                }
+            }
+            return audioCtx;
+        }
+
+        async function resumeAudioIfNeeded() {
+            ensureAudio();
+            if (audioCtx.state !== "running") {
+                await audioCtx.resume();
+            }
+        }
+
+        async function loadSamples() {
+            ensureAudio();
+            setStatus("Chargement des samples…");
+
+            let ok = 0;
+            let fail = 0;
+            let total = 0;
+
+            for (const [trackKey, urls] of Object.entries(sampleBanks)) {
+                for (let i = 0; i < urls.length; i++) {
+                    total++;
+                    const url = urls[i];
+
+                    try {
+                        const res = await fetch(url);
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        const arr = await res.arrayBuffer();
+                        const buf = await audioCtx.decodeAudioData(arr);
+                        buffers.set(bufKey(trackKey, i), buf);
+                        ok++;
+                    } catch (e) {
+                        console.warn("Sample load failed:", trackKey, i + 1, url, e);
+                        fail++;
+                    }
+                }
+            }
+
+            loadPill.textContent = `samples: ${ok}/${total} chargés${fail ? `, ${fail} manquants` : ""}`;
+            setStatus(fail ? "prêt (samples manquants)" : "prêt");
+        }
+
+
+        const activeVoiceByTrackId = new Map();
+        // trackId -> { src: AudioBufferSourceNode, gain: GainNode }
+
+        function playBuffer(trackKey, variantNumber, when, trackId) {
+            const i = variantNumber - 1;
+            const buf = buffers.get(bufKey(trackKey, i));
+            if (!buf) return;
+
+            const trackGain = trackGains.get(trackId);
+            if (!trackGain || trackGain.gain.value <= 0) return;
+
+            const fadeIn = 0.003;
+            const fadeOut = 0.01;
+
+            // Stop previous ONLY because we're about to play a new one (i.e., this step had a sample)
+            const prev = activeVoiceByTrackId.get(trackId);
+            if (prev) {
+                try {
+                    prev.gain.gain.cancelScheduledValues(when);
+                    // start from its current value at 'when' (safe-ish)
+                    prev.gain.gain.setValueAtTime(prev.gain.gain.value, when);
+                    prev.gain.gain.linearRampToValueAtTime(0, when + fadeOut);
+                    prev.src.stop(when + fadeOut + 0.02);
+                } catch (_) { }
+                activeVoiceByTrackId.delete(trackId);
+            }
+
+            // Start new voice
+            const src = audioCtx.createBufferSource();
+            src.buffer = buf;
+
+            const g = audioCtx.createGain();
+            src.connect(g);
+            g.connect(trackGain);
+
+            const endTime = when + buf.duration;
+
+            g.gain.setValueAtTime(0, when);
+            g.gain.linearRampToValueAtTime(1, when + fadeIn);
+
+            g.gain.setValueAtTime(1, Math.max(when + fadeIn, endTime - fadeOut));
+            g.gain.linearRampToValueAtTime(0, endTime);
+
+            src.start(when);
+            src.stop(endTime + 0.02);
+
+            activeVoiceByTrackId.set(trackId, { src, gain: g });
+
+            src.onended = () => {
+                const cur = activeVoiceByTrackId.get(trackId);
+                if (cur && cur.src === src) activeVoiceByTrackId.delete(trackId);
+            };
+        }
+
+
+
+
+        /***********************
+         * SCHEDULER
+         ***********************/
+        function scheduleStep(stepIndex, when) {
+            queuePlayhead(stepIndex);
+
+            for (let t = 0; t < tracks.length; t++) {
+                const option = pattern[t][stepIndex]; // 0..n
+                if (option === 0) continue;
+
+                const track = tracks[t];
+                // track.sampleKey is "drum" | "bass" | "acoustic" | "electric"
+                playBuffer(track.sampleKey, option, when, track.id);
+            }
+        }
+
+
+        function scheduler() {
+            const ctx = audioCtx;
+            if (!ctx) return;
+
+            while (nextNoteTime < ctx.currentTime + scheduleAhead) {
+                const stepSec = secondsPerStep();
+                const swingSec = swingOffsetSeconds(currentStep);
+                scheduleStep(currentStep, nextNoteTime + swingSec);
+
+                nextNoteTime += stepSec;
+                currentStep = (currentStep + 1) % STEPS;
+            }
+        }
+
+        function startScheduler() {
+            if (schedulerTimer) return;
+            schedulerTimer = setInterval(scheduler, lookaheadMs);
+        }
+        function stopScheduler() {
+            if (schedulerTimer) {
+                clearInterval(schedulerTimer);
+                schedulerTimer = null;
+            }
+        }
+
+        function start() {
+            if (isPlaying) return;
+            isPlaying = true;
+
+            currentStep = 0;
+            nextNoteTime = audioCtx.currentTime + 0.05; // small lead-in
+            startScheduler();
+
+            playBtn.textContent = "■ Stop";
+            setStatus("lecture");
+        }
+
+        function stop() {
+            isPlaying = false;
+            stopScheduler();
+            stopAllVoices(true);   // <-- immediate hard stop
+            clearPlayhead();
+            playBtn.textContent = "▶ Play";
+            setStatus("stoppé");
+        }
+
+
+        /***********************
+         * UI GRID RENDER
+         ***********************/
+        function buildGrid() {
+            gridEl.innerHTML = "";
+
+            // Header row (step numbers)
+            const thead = document.createElement("thead");
+            const hr = document.createElement("tr");
+
+            const corner = document.createElement("th");
+            corner.className = "colHead";
+            corner.textContent = "Track";
+            hr.appendChild(corner);
+
+            for (let s = 0; s < STEPS; s++) {
+                const th = document.createElement("th");
+                th.className = "colHead";
+                th.textContent = String(s + 1);
+                hr.appendChild(th);
+            }
+            thead.appendChild(hr);
+            gridEl.appendChild(thead);
+
+            // Body
+            const tbody = document.createElement("tbody");
+
+            tracks.forEach((track, tIndex) => {
+                const tr = document.createElement("tr");
+
+                // Row header cell
+                const th = document.createElement("th");
+                th.className = "rowHead";
+                th.innerHTML = `
+          <div class="name">
+            <span>${track.name}</span>
+            <button class="tinybtn ${track.muted ? "on" : ""}" data-action="mute" data-track="${tIndex}">
+              ${track.muted ? "Muted" : "Mute"}
+            </button>
+          </div>
+          <div class="sub">
+            <div class="vol">
+              <span style="min-width:42px;">Vol</span>
+              <input type="range" min="0" max="100" value="${Math.round(track.volume * 100)}"
+                     data-action="vol" data-track="${tIndex}">
+            </div>
+          </div>
+        `;
+                tr.appendChild(th);
+
+                // Step cells
+                for (let s = 0; s < STEPS; s++) {
+                    const td = document.createElement("td");
+                    const btn = document.createElement("button");
+                    btn.className = "cellBtn" + ((s % 4 === 0) ? " alt" : "");
+                    btn.setAttribute("data-track", tIndex);
+                    btn.setAttribute("data-step", s);
+                    btn.setAttribute("aria-label", `${track.name} step ${s + 1}`);
+                    btn.addEventListener("click", () => {
+                        toggleCell(tIndex, s);
+                    });
+                    btn.addEventListener("contextmenu", (e) => {
+                        e.preventDefault(); // prevents the browser's right-click menu
+                        resetCell(tIndex, s); //reset on right-click
+                    });
+                    td.appendChild(btn);
+                    tr.appendChild(td);
+                }
+
+                tbody.appendChild(tr);
+            });
+
+            gridEl.appendChild(tbody);
+
+            // Paint initial state
+            repaintAllCells();
+        }
+
+        function repaintAllCells() {
+            const buttons = gridEl.querySelectorAll(".cellBtn");
+            buttons.forEach(btn => {
+                const t = Number(btn.dataset.track);
+                const s = Number(btn.dataset.step);
+                const v = pattern[t][s];
+                btn.classList.toggle("on", v !== 0);
+                btn.textContent = v === 0 ? "-" : String(v);
+            });
+        }
+
+        function toggleCell(t, s) {
+            const trackKey = tracks[t].sampleKey;
+            const optionsCount = (sampleBanks[trackKey]?.length ?? 0);
+
+            // If no samples configured for this track, keep it at 0
+            if (optionsCount === 0) {
+                pattern[t][s] = 0;
+                repaintCell(t, s);
+                return;
+            }
+
+            const cur = pattern[t][s]; // 0..optionsCount
+            pattern[t][s] = (cur + 1) % (optionsCount + 1); // +1 because 0 means "off"
+            repaintCell(t, s);
+        }
+
+        function resetCell(t, s) {
+            pattern[t][s] = 0;
+            repaintCell(t, s);
+        }
+
+        function repaintCell(t, s) {
+            const btn = gridEl.querySelector(`.cellBtn[data-track="${t}"][data-step="${s}"]`);
+            if (!btn) return;
+
+            const v = pattern[t][s]; // 0..4
+            btn.classList.toggle("on", v !== 0);
+            btn.textContent = v === 0 ? "-" : String(v);
+        }
+
+        /***********************
+         * PLAYHEAD HIGHLIGHT
+         ***********************/
+        let playheadStep = null;
+        let playheadRaf = null;
+
+        function queuePlayhead(stepIndex) {
+            // throttle UI to animation frame
+            playheadStep = stepIndex;
+            if (playheadRaf) return;
+            playheadRaf = requestAnimationFrame(() => {
+                playheadRaf = null;
+                setPlayhead(playheadStep);
+            });
+        }
+
+        function setPlayhead(stepIndex) {
+            clearPlayhead();
+            const btns = gridEl.querySelectorAll(`.cellBtn[data-step="${stepIndex}"]`);
+            btns.forEach(b => b.classList.add("playhead"));
+        }
+
+        function clearPlayhead() {
+            const btns = gridEl.querySelectorAll(".cellBtn.playhead");
+            btns.forEach(b => b.classList.remove("playhead"));
+        }
+
+        /***********************
+         * EVENTS
+         ***********************/
+        gridEl.addEventListener("click", async (e) => {
+            const muteBtn = e.target.closest('button[data-action="mute"]');
+            if (muteBtn) {
+                const t = Number(muteBtn.dataset.track);
+                tracks[t].muted = !tracks[t].muted;
+                muteBtn.classList.toggle("on", tracks[t].muted);
+                muteBtn.textContent = tracks[t].muted ? "Muted" : "Mute";
+                const g = trackGains.get(tracks[t].id);
+                if (g) g.gain.value = tracks[t].muted ? 0 : tracks[t].volume;
+                return;
+            }
+        });
+
+        gridEl.addEventListener("input", (e) => {
+            const vol = e.target.closest('input[data-action="vol"]');
+            if (!vol) return;
+            const t = Number(vol.dataset.track);
+            tracks[t].volume = Number(vol.value) / 100;
+            const g = trackGains.get(tracks[t].id);
+            if (g) g.gain.value = tracks[t].muted ? 0 : tracks[t].volume;
+        });
+
+        bpmEl.addEventListener("input", () => {
+            bpmOut.textContent = bpmEl.value;
+        });
+
+        swingEl.addEventListener("input", () => {
+            swingOut.textContent = `${swingEl.value}%`;
+        });
+
+        playBtn.addEventListener("click", async () => {
+            await resumeAudioIfNeeded();
+            // Try loading samples the first time you hit play (or you can do it on page load)
+            if (buffers.size === 0) await loadSamples();
+
+            if (!isPlaying) start();
+            else stop();
+        });
+
+        randomBtn.addEventListener("click", () => {
+            generateRandomPattern();
+        });
+
+
+        clearBtn.addEventListener("click", () => {
+            if (!confirm("Es-tu sûr de vouloir effacer ce chef-d'œuvre?")) return;
+            for (let t = 0; t < tracks.length; t++) {
+                pattern[t].fill(0);
+            }
+            repaintAllCells();
+        });
+
+        shareBtn.addEventListener("click", async () => {
+            const url = makeShareUrlFromCurrentState();
+
+            try {
+                await navigator.clipboard.writeText(url);
+                setStatus("Lien copié ✅");
+            } catch (e) {
+                // Fallback if clipboard API blocked
+                prompt("Copie ce lien :", url);
+                setStatus("Lien prêt à copier");
+            }
+        });
+
+
+        window.addEventListener("keydown", async (e) => {
+            if (e.code === "Space") {
+                e.preventDefault();
+                await resumeAudioIfNeeded();
+                if (buffers.size === 0) await loadSamples();
+                if (!isPlaying) start();
+                else stop();
+            }
+        });
+
+        /***********************
+         * INIT
+         ***********************/
+        buildGrid();
+        bpmOut.textContent = bpmEl.value;
+        swingOut.textContent = `${swingEl.value}%`;
+        setStatus("prêt");
+
+        // Optional: uncomment if you want to try loading immediately (may still fail w/o files)
+        // (You still need a user gesture to start playback in many browsers.)
+        (async () => {
+            ensureAudio();
+            await loadSamples();
+
+            try {
+                const loaded = tryLoadSongFromUrlHash();
+                if (loaded) {
+                    setStatus("Pattern chargé depuis le lien ✅");
+                }
+                else {
+                    generateRandomPattern();
+                }
+            } catch (e) {
+                console.warn("Failed to load song from URL:", e);
+                setStatus("Lien invalide (chargement impossible)");
+                generateRandomPattern();
+            }
+        })();
+    </script>
+</body>
+
+</html>
