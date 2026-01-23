@@ -426,8 +426,8 @@
                 <div class="sliders">
                     <div class="field" style="display:none">
                         <label for="bpm">BPM</label>
-                        <input id="bpm" type="range" min="60" max="180" value="39.25" step="0.25" />
-                        <output id="bpmOut">78.5</output>
+                        <input id="bpm" type="range" min="0" max="180" value="39.25" step="0.25" />
+                        <output id="bpmOut">39.25</output>
                     </div>
 
                     <div class="field" style="display: none;">
@@ -714,9 +714,10 @@
         function bufKey(trackKey, variantIndex0) {
             return `${trackKey}:${variantIndex0}`;
         }
-        function setStatus(msg) { statusEl.textContent = msg; }
+        const statusLog = [];
+        function setStatus(msg) { statusLog.push(msg); statusEl.textContent = msg; }
 
-        function bpm() { return 39.25; /*Number(bpmEl.value);*/ }
+        function bpm() { return /* 39.25; */ Number(bpmEl.value); }
         function swingAmount() { return Number(swingEl.value) / 100; } // 0.00..0.60
 
         // 16 steps per bar, 4 beats per bar => 4 steps per beat (16th notes)
@@ -768,10 +769,10 @@
         }
 
         async function loadSamples() {
-            
+
             if (!audioCtx) throw new Error("Audio not unlocked yet");
             setStatus("Chargement des samples…");
-            
+
             let ok = 0;
             let fail = 0;
             let total = 0;
@@ -814,12 +815,15 @@
             const fadeIn = 0.003;
             const fadeOut = 0.01;
 
-            // Stop previous ONLY because we're about to play a new one (i.e., this step had a sample)
+            // ✅ Clamp FIRST (mobile Safari is picky)
+            const now = audioCtx.currentTime;
+            if (when < now + 0.01) when = now + 0.01;
+
+            // Stop previous ONLY when triggering a new sample
             const prev = activeVoiceByTrackId.get(trackId);
             if (prev) {
                 try {
                     prev.gain.gain.cancelScheduledValues(when);
-                    // start from its current value at 'when' (safe-ish)
                     prev.gain.gain.setValueAtTime(prev.gain.gain.value, when);
                     prev.gain.gain.linearRampToValueAtTime(0, when + fadeOut);
                     prev.src.stop(when + fadeOut + 0.02);
@@ -827,7 +831,6 @@
                 activeVoiceByTrackId.delete(trackId);
             }
 
-            // Start new voice
             const src = audioCtx.createBufferSource();
             src.buffer = buf;
 
@@ -835,6 +838,7 @@
             src.connect(g);
             g.connect(trackGain);
 
+            // ✅ Compute endTime AFTER clamping when
             const endTime = when + buf.duration;
 
             g.gain.setValueAtTime(0, when);
@@ -843,9 +847,6 @@
             g.gain.setValueAtTime(1, Math.max(when + fadeIn, endTime - fadeOut));
             g.gain.linearRampToValueAtTime(0, endTime);
 
-            const now = audioCtx.currentTime;
-            // If scheduled time is slightly behind, push it forward a tiny bit
-            if (when < now + 0.005) when = now + 0.005;
             src.start(when);
             src.stop(endTime + 0.02);
 
@@ -856,7 +857,6 @@
                 if (cur && cur.src === src) activeVoiceByTrackId.delete(trackId);
             };
         }
-
 
 
 
@@ -1147,6 +1147,10 @@
                 if (!isPlaying) start();
                 else stop();
             }
+        });
+
+        statusEl.addEventListener("click", () => {
+            alert(statusLog.join('\n'));
         });
 
         document.addEventListener("touchstart", () => {
