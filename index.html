@@ -506,6 +506,7 @@
         }
 
         .overlayCard {
+            text-align: center;
             width: min(560px, 100%);
             max-width: 100%;
 
@@ -522,7 +523,6 @@
 
 
         .overlayTop {
-            display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
@@ -545,7 +545,6 @@
 
         .overlayActions {
             margin-top: 14px;
-            display: flex;
             align-items: center;
             gap: 12px;
             flex-wrap: wrap;
@@ -622,6 +621,7 @@
     <!-- Welcome Overlay -->
     <div id="welcomeOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
         <div class="overlayCard panel">
+            <img width="320px" src="./Logis_logo.png" />
             <div class="overlayTop">
                 <h2 id="welcomeTitle" class="overlayTitle">Bienvenue sur Logis-o-matic!👋</h2>
             </div>
@@ -633,10 +633,12 @@
 
             <div class="overlayActions">
                 <button id="welcomeGoBtn" class="btn primary">Commencer!</button>
-                <div id="welcomeLoading" class="overlayLoading is-hidden">
-                    <div class="spinner" aria-hidden="true"></div>
-                    <span>Chargement…</span>
-                </div>
+
+            </div>
+
+            <div id="welcomeLoading" class="overlayLoading is-hidden">
+                <div class="spinner" aria-hidden="true"></div>
+                <span>Chargement…</span>
             </div>
 
         </div>
@@ -650,13 +652,18 @@
                     Clique sur les cases pour choisir des samples pour chacune des pistes. Clique-droit pour retirer le
                     sample.
                 </p>
+                <iframe style="border: 0; height: 42px;"
+                    src="https://bandcamp.com/EmbeddedPlayer/album=3192520827/size=small/bgcol=333333/linkcol=9a64ff/track=2154247208/transparent=true/"
+                    seamless><a href="https://logis.bandcamp.com/album/logis">Logis by Logis</a></iframe>
             </div>
             <div class="controls">
+
                 <button id="playBtn" class="btn primary">▶ Jouer</button>
                 <button id="randomBtn" class="btn">🎲 Aléatoire</button>
                 <button id="clearBtn" class="btn danger">Réinitialiser</button>
                 <button id="shareBtn" class="btn">🔗🔥 Partager le lien</button>
                 <span id="loadPill" class="pill">samples: non chargés</span>
+
             </div>
         </header>
 
