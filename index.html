@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Logis-o-matic</title>
     <style>
         :root {
@@ -29,14 +29,27 @@
             box-sizing: border-box
         }
 
+        html,
         body {
+            height: 100%;
             margin: 0;
+        }
+
+        body {
             font-family: var(--sans);
+            color: var(--text);
+
+            /* keep your background */
             background: radial-gradient(1200px 600px at 30% -10%, rgba(124, 92, 255, .35), transparent 60%),
                 radial-gradient(1000px 500px at 90% 10%, rgba(46, 229, 157, .22), transparent 55%),
                 var(--bg);
-            color: var(--text);
-            min-height: 100vh;
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+
+            /* IMPORTANT: stop the page from scrolling */
+            overflow: hidden;
+
+            /* your centering */
             display: flex;
             align-items: flex-start;
             justify-content: center;
@@ -47,6 +60,9 @@
             width: min(1100px, 100%);
             display: grid;
             gap: 16px;
+
+            /* fill viewport height minus body padding */
+            height: calc(100svh - 48px);
         }
 
         header {
@@ -65,6 +81,7 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
+            align-items: start;
         }
 
         .title h1 {
@@ -72,6 +89,64 @@
             font-size: 18px;
             font-weight: 700;
             letter-spacing: .2px;
+        }
+
+        .titleInfo {
+            position: relative;
+            cursor: help;
+            text-decoration: underline dotted rgba(169, 176, 192, .45);
+            text-underline-offset: 4px;
+        }
+
+        .titleInfo::after {
+            content: attr(data-info);
+            position: absolute;
+
+            left: 50%;
+            top: calc(100% + 10px);
+            transform: translateX(-50%) translateY(-4px);
+
+            max-width: min(320px, 90vw);
+            padding: 10px 12px;
+
+            font-size: 12px;
+            line-height: 1.4;
+            color: var(--text);
+
+            background: linear-gradient(180deg, rgba(18, 20, 32, .95), rgba(18, 20, 32, .85));
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+
+            opacity: 0;
+            pointer-events: none;
+            white-space: normal;
+
+            transition: opacity .15s ease, transform .15s ease;
+            z-index: 50;
+        }
+
+        /* little arrow */
+        .titleInfo::before {
+            content: "";
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+
+            border-width: 6px;
+            border-style: solid;
+            border-color: transparent transparent var(--border) transparent;
+
+            opacity: 0;
+            transition: opacity .15s ease;
+        }
+
+        /* show tooltip on hover */
+        .titleInfo:hover::after,
+        .titleInfo:hover::before {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
         }
 
         .title p {
@@ -188,14 +263,18 @@
             text-align: right;
         }
 
-        .grid {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            overflow: hidden;
+        .gridWrap {
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
             border-radius: 14px;
-            border: 1px solid var(--border);
-            background: rgba(0, 0, 0, .18);
+        }
+
+        /* key: grid must be allowed to be wider than the wrapper */
+        .grid {
+            width: max-content;
+            min-width: 100%;
         }
 
         .grid th,
@@ -400,22 +479,182 @@
                     rgba(124, 92, 255, 0.4));
             border-radius: 999px;
         }
+
+        /* ===== WELCOME OVERLAY ===== */
+        /* ===== WELCOME OVERLAY (mobile-safe) ===== */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+
+            display: grid;
+            place-items: center;
+
+            /* use dynamic viewport height so it fits on mobile address-bar changes */
+            height: 100dvh;
+            width: 100vw;
+
+            padding: 16px;
+
+            background: radial-gradient(900px 500px at 20% 0%, rgba(124, 92, 255, .25), transparent 60%),
+                radial-gradient(900px 500px at 90% 30%, rgba(46, 229, 157, .18), transparent 55%),
+                rgba(0, 0, 0, .55);
+            backdrop-filter: blur(6px);
+
+            overflow: hidden;
+            /* overlay never scrolls */
+        }
+
+        .overlayCard {
+            width: min(560px, 100%);
+            max-width: 100%;
+
+            /* key: never exceed viewport */
+            max-height: calc(100dvh - 32px);
+            overflow: auto;
+
+            border-radius: calc(var(--radius) + 4px);
+            padding: 18px;
+
+            /* nicer scroll on iOS if content overflows */
+            -webkit-overflow-scrolling: touch;
+        }
+
+
+        .overlayTop {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .overlayTitle {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: .2px;
+        }
+
+        .overlayText {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .overlayActions {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .overlayLoading {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 12px;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, .18);
+            border-top-color: rgba(124, 92, 255, .95);
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .overlay.hide {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .22s ease;
+        }
+
+        .is-hidden {
+            display: none !important;
+        }
+
+        .overlay {
+            transition: opacity .22s ease;
+            opacity: 1;
+        }
+
+        .overlay.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        footer a {
+            color: salmon;
+        }
+
+        @media (max-width: 720px) {
+            header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .controls {
+                justify-content: flex-start;
+            }
+
+            /* optional: let buttons wrap nicely */
+            .btn,
+            .pill {
+                flex: 0 0 auto;
+            }
+        }
     </style>
 </head>
 
 <body>
+    <!-- Welcome Overlay -->
+    <div id="welcomeOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+        <div class="overlayCard panel">
+            <div class="overlayTop">
+                <h2 id="welcomeTitle" class="overlayTitle">Bienvenue sur Logis-o-matic!👋</h2>
+            </div>
+
+            <p class="overlayText">
+                Créez la loop la plus folle avec les sons de notre chanson KRASS! et partagez nous ensuite le résultat!
+                On jouera peut-être votre version à notre prochain show ;)
+            </p>
+
+            <div class="overlayActions">
+                <button id="welcomeGoBtn" class="btn primary">Commencer!</button>
+                <div id="welcomeLoading" class="overlayLoading is-hidden">
+                    <div class="spinner" aria-hidden="true"></div>
+                    <span>Chargement…</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
     <div class="app">
         <header>
             <div class="title">
-                <h1>Logis-o-matic</h1>
+                <h1 class="titleInfo" data-info="Inspiré du légendaire jeu flash Punk-o-matic">Logis-o-matic</h1>
                 <p>
-                    Inspiré du légendaire jeu flash Punk-o-matic
+                    Clique sur les cases pour choisir des samples pour chacune des pistes. Clique-droit pour retirer le
+                    sample.
                 </p>
             </div>
             <div class="controls">
-                <button id="playBtn" class="btn primary">▶ Play</button>
-                <button id="randomBtn" class="btn">🎲 Random</button>
-                <button id="clearBtn" class="btn danger">Clear</button>
+                <button id="playBtn" class="btn primary">▶ Jouer</button>
+                <button id="randomBtn" class="btn">🎲 Aléatoire</button>
+                <button id="clearBtn" class="btn danger">Réinitialiser</button>
                 <button id="shareBtn" class="btn">🔗🔥 Partager le lien</button>
                 <span id="loadPill" class="pill">samples: non chargés</span>
             </div>
@@ -442,7 +681,9 @@
                 <div class="status" id="status">ready</div>
             </div>
 
-            <table class="grid" id="grid"></table>
+            <div class="gridWrap">
+                <table id="grid" class="grid"></table>
+            </div>
 
             <div class="legend">
                 <div>
@@ -451,6 +692,11 @@
             </div>
         </section>
 
+        <footer class="footer">
+            Une création de <strong><a href="https://www.instagram.com/logis_musique/"
+                    target="_target">Logis</a></strong> ·
+            Tous droits réservés © 2026
+        </footer>
 
     </div>
 
@@ -518,11 +764,99 @@
         const swingOut = document.getElementById("swingOut");
         const statusEl = document.getElementById("status");
         const shareBtn = document.getElementById("shareBtn");
+        const welcomeOverlay = document.getElementById("welcomeOverlay");
+        const welcomeGoBtn = document.getElementById("welcomeGoBtn");
+        const welcomeLoading = document.getElementById("welcomeLoading");
+
 
 
         /***********************
          * HELPERS
          ***********************/
+        async function shareLink() {
+            const url = makeShareUrlFromCurrentState();
+            const title = "KRASS! Ma meilleure version";
+            const text = "Check ça 😄";
+
+            // Best UX when available
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title, text, url });
+                    setStatus("Partagé ✅");
+                    return;
+                } catch (e) {
+                    // user cancelled or share failed -> fall back
+                }
+            }
+
+            // Fallback: clipboard
+            try {
+                await navigator.clipboard.writeText(url);
+                setStatus("Lien copié ✅");
+            } catch (_) {
+                prompt("Copie ce lien :", url);
+                setStatus("Lien prêt à copier");
+            }
+        }
+
+        function lockScroll() {
+            document.documentElement.style.overflow = "hidden";
+            document.body.style.overflow = "hidden";
+            document.body.style.touchAction = "none";
+        }
+
+        function unlockScroll() {
+            document.documentElement.style.overflow = "";
+            document.body.style.overflow = "";
+            document.body.style.touchAction = "";
+        }
+        function showWelcomeOverlay() {
+            if (!welcomeOverlay) return;
+            welcomeOverlay.style.display = "grid";
+            lockScroll();
+
+            // ensure initial UI state
+            welcomeGoBtn.disabled = false;
+            welcomeLoading.classList.add("is-hidden");
+        }
+
+        function hideWelcomeOverlay() {
+            if (!welcomeOverlay) return;
+            welcomeOverlay.classList.add("hide");
+
+            setTimeout(() => {
+                welcomeOverlay.style.display = "none";
+                welcomeOverlay.classList.remove("hide");
+                unlockScroll();
+            }, 250);
+        }
+
+        async function startWithWelcomeFlow() {
+            // already loaded? just close
+            if (buffers.size > 0) {
+                hideWelcomeOverlay();
+                return;
+            }
+
+            // UI state
+            welcomeGoBtn.disabled = true;
+            welcomeLoading.classList.remove("is-hidden");
+            setStatus("Chargement des samples…");
+
+            try {
+                // Must be called from the button click (gesture)
+                await unlockAudioFromGesture();
+                await loadSamples(); // your function already updates loadPill + status
+                hideWelcomeOverlay();
+            } catch (e) {
+                console.warn(e);
+                setStatus("Erreur de chargement");
+                alert("Impossible de charger les samples. Vérifie que les fichiers existent et que le serveur les sert correctement.");
+                welcomeGoBtn.disabled = false;
+                welcomeLoading.classList.add("is-hidden");
+            }
+        }
+
         function base64UrlEncodeBytes(bytes) {
             let binary = "";
             for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
@@ -670,10 +1004,10 @@
 
             // Simple “musical-ish” defaults per track
             const rulesByTrackKey = {
-                drum: { density: 0.4, minGap: 0 }, // more hits
-                bass: { density: 0.4, minGap: 1 }, // sparser
-                acoustic: { density: 0.4, minGap: 1 },
-                electric: { density: 0.4, minGap: 1 },
+                drum: { density: 0.35, minGap: 0, maxGap: 8 }, // more hits
+                bass: { density: 0.35, minGap: 1, maxGap: 8 }, // sparser
+                acoustic: { density: 0.35, minGap: 1, maxGap: 8 },
+                electric: { density: 0.35, minGap: 1, maxGap: 8 },
             };
 
             for (let t = 0; t < tracks.length; t++) {
@@ -681,7 +1015,7 @@
                 const optionsCount = (sampleBanks[trackKey]?.length ?? 0);
                 if (optionsCount === 0) continue;
 
-                const { density, minGap } = rulesByTrackKey[trackKey] ?? { density: 0.15, minGap: 1 };
+                const { density, minGap, maxGap } = rulesByTrackKey[trackKey] ?? { density: 0.15, minGap: 1, maxGap: 8 };
 
                 let lastHitStep = -999;
 
@@ -690,9 +1024,17 @@
 
                 for (let s = 0; s < STEPS; s++) {
                     const tooClose = (s - lastHitStep) <= minGap;
+                    const tooFar = (s - lastHitStep) >= maxGap;
 
-                    // stronger probability on downbeats
-                    const p = downbeats.has(s) ? Math.min(1, density + 0.20) : density;
+                    let p = 0;
+                    if (tooFar) {
+                        p = 1; // we force a new sample
+                    }
+                    else {
+                        // probability according to density
+                        // with stronger probability on downbeats
+                        p = downbeats.has(s) ? Math.min(1, density + 0.20) : density;
+                    }
 
                     if (!tooClose && chance(p)) {
                         pattern[t][s] = randInt(1, optionsCount);
@@ -701,11 +1043,11 @@
                 }
 
                 // Ensure at least one hit per track (optional)
-                const hasAny = pattern[t].some(v => v !== 0);
+                /* const hasAny = pattern[t].some(v => v !== 0);
                 if (!hasAny) {
                     const s = randInt(0, STEPS - 1);
                     pattern[t][s] = randInt(1, optionsCount);
-                }
+                } */
             }
 
             repaintAllCells();
@@ -910,7 +1252,7 @@
             nextNoteTime = audioCtx.currentTime + 0.05; // small lead-in
             startScheduler();
 
-            playBtn.textContent = "■ Stop";
+            playBtn.textContent = "■ Arrêter";
             setStatus("lecture");
         }
 
@@ -919,8 +1261,8 @@
             stopScheduler();
             stopAllVoices(true);   // <-- immediate hard stop
             clearPlayhead();
-            playBtn.textContent = "▶ Play";
-            setStatus("stoppé");
+            playBtn.textContent = "▶ Jouer";
+            setStatus("arrêté");
         }
 
 
@@ -1073,6 +1415,14 @@
         /***********************
          * EVENTS
          ***********************/
+        // Welcome button click
+        welcomeGoBtn?.addEventListener("click", async () => {
+            await startWithWelcomeFlow();
+        });
+
+        // Optional: prevent scrolling behind overlay on mobile
+        welcomeOverlay?.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
+
         gridEl.addEventListener("click", async (e) => {
             const muteBtn = e.target.closest('button[data-action="mute"]');
             if (muteBtn) {
@@ -1126,16 +1476,7 @@
         });
 
         shareBtn.addEventListener("click", async () => {
-            const url = makeShareUrlFromCurrentState();
-
-            try {
-                await navigator.clipboard.writeText(url);
-                setStatus("Lien copié ✅");
-            } catch (e) {
-                // Fallback if clipboard API blocked
-                prompt("Copie ce lien :", url);
-                setStatus("Lien prêt à copier");
-            }
+            shareLink();
         });
 
 
@@ -1160,6 +1501,7 @@
         /***********************
          * INIT
          ***********************/
+        showWelcomeOverlay();
         buildGrid();
         bpmOut.textContent = bpmEl.value;
         swingOut.textContent = `${swingEl.value}%`;
